@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Learning Material (PDF) — SkillStat AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>Upload Learning Material (PDF)</h5>
+                    <span class="badge bg-primary rounded-pill">pypdf Text Extraction</span>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <div class="mb-4">
+                        <p class="text-muted">
+                            Upload training guidelines, MoSPI statistical reports, survey manuals, or academic papers.
+                            SkillStat AI automatically extracts all readable text using <code>pypdf</code> and enables on-demand <strong>AI Multiple Choice Question (MCQ) Generation</strong>.
+                        </p>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" action="{% url 'learning:pdf_upload' %}">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Document Title *</label>
+                            {{ form.title }}
+                            <small class="text-muted">Descriptive title for this learning material</small>
+                            {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Target Skill / Competency</label>
+                                {{ form.skill }}
+                                <small class="text-muted">Assigns extracted knowledge to a competency</small>
+                                {% if form.skill.errors %}<div class="text-danger small">{{ form.skill.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Associated Curriculum Course</label>
+                                {{ form.course }}
+                                <small class="text-muted">Optional: map to an existing course</small>
+                                {% if form.course.errors %}<div class="text-danger small">{{ form.course.errors.0 }}</div>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold">PDF Document File *</label>
+                            {{ form.file }}
+                            <div class="d-flex justify-content-between text-muted small mt-1">
+                                <span>Accepted format: <code>.pdf</code> only</span>
+                                <span>Max size: 20MB</span>
+                            </div>
+                            {% if form.file.errors %}<div class="text-danger small">{{ form.file.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <!-- Technical Handling Advice -->
+                        <div class="alert alert-light border rounded-3 p-3 mb-4">
+                            <div class="d-flex gap-2">
+                                <i class="bi bi-shield-check text-primary fs-5"></i>
+                                <div class="small text-muted">
+                                    <strong class="text-dark">Automated Verification Protocol:</strong>
+                                    Our extraction pipeline verifies file integrity, validates against encrypted/password streams, checks for text stream availability, and prevents empty/corrupted submissions.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'learning:material_list' %}" class="btn btn-outline-secondary px-4 rounded-pill">View Repository</a>
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill fw-semibold shadow-sm">
+                                <i class="bi bi-cloud-arrow-up-fill me-1"></i> Upload & Extract Text
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

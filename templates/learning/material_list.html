@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Learning Material Repository — SkillStat AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4">
+    <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+        <div>
+            <h1 class="h3 fw-bold mb-0">Learning Material Repository</h1>
+            <p class="text-muted small mb-0">Uploaded training manuals, PDFs, and document knowledge bases</p>
+        </div>
+        <div>
+            <a href="{% url 'learning:pdf_upload' %}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
+                <i class="bi bi-file-earmark-plus me-1"></i> Upload New PDF
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-muted text-uppercase">
+                    <tr>
+                        <th class="ps-4">Document Title</th>
+                        <th>Competency</th>
+                        <th>Extraction Status</th>
+                        <th>Pages</th>
+                        <th>Word Count</th>
+                        <th>Upload Date</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mat in materials %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-file-earmark-pdf-fill text-danger fs-4"></i>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ mat.title }}</div>
+                                    <span class="small text-muted">{{ mat.file.name|slice:":40" }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if mat.skill %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">
+                                {{ mat.skill.name }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted small">General</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge {% if mat.extraction_status == 'success' %}bg-success{% elif mat.extraction_status == 'empty' %}bg-warning text-dark{% else %}bg-danger{% endif %} rounded-pill">
+                                {{ mat.get_extraction_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ mat.page_count }}</td>
+                        <td><strong>{{ mat.word_count }}</strong></td>
+                        <td class="small text-muted">{{ mat.uploaded_at|date:"M d, Y" }}</td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'learning:material_detail' mat.id %}" class="btn btn-outline-secondary" title="View Extracted Text">
+                                    <i class="bi bi-eye"></i> View Text
+                                </a>
+                                {% if mat.extraction_status == 'success' and mat.word_count >= 30 %}
+                                <a href="{% url 'quizzes:ai_generate' %}?material_id={{ mat.id }}" class="btn btn-warning text-dark fw-semibold" title="Generate AI Quiz">
+                                    <i class="bi bi-magic"></i> AI Quiz
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-folder-x fs-1 d-block mb-2"></i>
+                            No documents uploaded yet.
+                            <div class="mt-2">
+                                <a href="{% url 'learning:pdf_upload' %}" class="btn btn-primary btn-sm rounded-pill px-3">Upload PDF Learning Material</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

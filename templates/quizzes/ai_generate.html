@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Quiz Generator — SkillStat AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-magic fs-4 text-warning"></i>
+                        <h5 class="mb-0 fw-bold">AI Quiz & MCQ Generator</h5>
+                    </div>
+                    {% if AI_MODE == 'real' and HAS_REAL_AI %}
+                    <span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-25 rounded-pill px-3 py-1.5">
+                        <i class="bi bi-lightning-charge-fill me-1"></i> Real LLM ({{ AI_MODEL }})
+                    </span>
+                    {% else %}
+                    <span class="badge bg-warning bg-opacity-25 text-dark border border-warning rounded-pill px-3 py-1.5 fw-semibold">
+                        <i class="bi bi-cpu-fill me-1"></i> Demo Mode Active
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <p class="text-muted">
+                        Generate curriculum-aligned Multiple Choice Questions directly from extracted PDF documents or customized training notes.
+                        Every question is grounded in the provided text.
+                    </p>
+
+                    <form method="post" action="{% url 'quizzes:ai_generate' %}">
+                        {% csrf_token %}
+
+                        <!-- Document Source Selector -->
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold">Select Extracted PDF Learning Material</label>
+                            <select name="material_id" id="material_id" class="form-select" onchange="toggleMaterialText(this)">
+                                <option value="">-- Choose an uploaded document (Recommended) --</option>
+                                {% for mat in materials %}
+                                <option value="{{ mat.id }}" {% if preselected_material and preselected_material.id == mat.id %}selected{% endif %}>
+                                    {{ mat.title }} ({{ mat.skill.name|default:"General" }} • {{ mat.word_count }} words)
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Questions will be derived directly from this document's text.</small>
+                        </div>
+
+                        <!-- Fallback / Custom Text Input -->
+                        <div class="mb-4" id="custom_text_group">
+                            <label class="form-label small fw-semibold">Or Provide Curriculum Text / Notes Directly</label>
+                            <textarea name="custom_text" id="custom_text" class="form-control" rows="4" placeholder="Paste training excerpts, statistical definitions, or survey rules here (minimum 30 words required)..."></textarea>
+                            <small class="text-muted">If no document is selected, the AI generates questions from this text.</small>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Target Skill Focus</label>
+                                <select name="skill_id" class="form-select">
+                                    <option value="">Auto-Detect from Text</option>
+                                    {% for s in skills %}
+                                    <option value="{{ s.id }}">{{ s.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Difficulty Level</label>
+                                <select name="difficulty" class="form-select">
+                                    <option value="Beginner">Beginner (Foundational)</option>
+                                    <option value="Intermediate" selected>Intermediate (Operational)</option>
+                                    <option value="Advanced">Advanced (Specialist)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Number of MCQs</label>
+                                <select name="num_questions" class="form-select">
+                                    <option value="3">3 Questions (Quick Check)</option>
+                                    <option value="5" selected>5 Questions (Standard)</option>
+                                    <option value="7">7 Questions (Comprehensive)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Mode Notice -->
+                        <div class="alert alert-light border rounded-3 p-3 mb-4 small text-muted">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-info-circle-fill text-primary mt-0.5"></i>
+                                <div>
+                                    <strong>AI Architecture & Fallback Protocol:</strong>
+                                    SkillStat AI supports both live LLM API execution (via Gemini / OpenAI) and offline domain-specific Demo Mode.
+                                    MCQ generation is guaranteed never to crash even without an external internet connection.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'learning:pdf_upload' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                                <i class="bi bi-file-earmark-arrow-up me-1"></i> Upload New PDF
+                            </a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 fw-semibold shadow-sm">
+                                <i class="bi bi-magic me-1"></i> Generate AI Quiz &rarr;
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleMaterialText(select) {
+    const customGroup = document.getElementById('custom_text_group');
+    if (select.value) {
+        customGroup.style.opacity = '0.6';
+    } else {
+        customGroup.style.opacity = '1';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Skill Gap Engine — SkillStat AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4">
+    
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center pb-3 mb-4 border-bottom gap-2">
+        <div>
+            <h1 class="h3 fw-bold mb-0">Competency Skill Gap Engine</h1>
+            <p class="text-muted small mb-0">Algorithmic discrepancy analysis between current proficiency and target national benchmarks (80%)</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'learning:learning_path' %}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-semibold">
+                <i class="bi bi-signpost-split me-1"></i> Recommended Learning Path &rarr;
+            </a>
+        </div>
+    </div>
+
+    <!-- Priority Threshold Alert Box -->
+    <div class="alert alert-light border shadow-sm rounded-3 p-3 mb-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-circle">
+                    <i class="bi bi-calculator-fill fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0">Discrepancy Formula: <code>Gap = Required Benchmark (80%) - Current Competency</code></h6>
+                    <small class="text-muted">Classified according to SIH 2026 Problem Statement PS26101 Priority Rules:</small>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <span class="badge badge-priority-high px-3 py-2 rounded-pill">Gap &ge; 40 &rarr; HIGH</span>
+                <span class="badge badge-priority-medium px-3 py-2 rounded-pill">Gap &ge; 20 &rarr; MEDIUM</span>
+                <span class="badge badge-priority-low px-3 py-2 rounded-pill">Gap &lt; 20 &rarr; LOW</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Count Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm border-0 border-start border-danger border-4">
+                <span class="text-muted small fw-semibold text-uppercase">High Priority Interventions</span>
+                <div class="d-flex align-items-baseline gap-2 mt-1">
+                    <h2 class="display-6 fw-bold text-danger mb-0">{{ high_count }}</h2>
+                    <span class="text-muted small">Skills needing urgent training</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm border-0 border-start border-warning border-4">
+                <span class="text-muted small fw-semibold text-uppercase">Medium Priority Skills</span>
+                <div class="d-flex align-items-baseline gap-2 mt-1">
+                    <h2 class="display-6 fw-bold text-warning mb-0">{{ med_count }}</h2>
+                    <span class="text-muted small">Moderate competency deficit</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm border-0 border-start border-success border-4">
+                <span class="text-muted small fw-semibold text-uppercase">Low Priority / Target Met</span>
+                <div class="d-flex align-items-baseline gap-2 mt-1">
+                    <h2 class="display-6 fw-bold text-success mb-0">{{ low_count }}</h2>
+                    <span class="text-muted small">Approaching or exceeding 80% benchmark</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full Skill Gaps Table -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header card-header-custom d-flex align-items-center justify-content-between">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-table text-primary me-2"></i>Full Competency Skill Gap Evaluation</h5>
+            <span class="text-muted small">Ranked by largest gap</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-muted text-uppercase">
+                    <tr>
+                        <th class="ps-4">Skill</th>
+                        <th>Current Score</th>
+                        <th>Required Score</th>
+                        <th>Competency Gap</th>
+                        <th>Priority Rating</th>
+                        <th class="text-end pe-4">Intervention</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in skill_gaps %}
+                    <tr class="{% if g.priority == 'HIGH' %}table-danger bg-opacity-10{% elif g.priority == 'MEDIUM' %}table-warning bg-opacity-10{% endif %}">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi {{ g.skill.icon }} text-primary fs-5"></i>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ g.skill.name }}</div>
+                                    <span class="text-muted small">{{ g.skill.category }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fw-bold fs-6">{{ g.current_level|floatformat:1 }}%</span>
+                            <div class="progress progress-custom" style="width: 100px;">
+                                <div class="progress-bar {% if g.current_level >= 75 %}progress-bar-success{% elif g.current_level >= 50 %}progress-bar-warning{% else %}progress-bar-danger{% endif %}" style="width: {{ g.current_level }}%"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis border px-2.5 py-1">
+                                {{ g.required_level }}%
+                            </span>
+                        </td>
+                        <td>
+                            {% if g.gap > 0 %}
+                            <span class="fw-bold {% if g.priority == 'HIGH' %}text-danger{% elif g.priority == 'MEDIUM' %}text-warning{% else %}text-muted{% endif %} fs-6">
+                                {{ g.gap|floatformat:1 }}% Gap
+                            </span>
+                            {% else %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-lg"></i> 0.0% (Met)</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-priority-{{ g.priority|lower }} rounded-pill px-3 py-1.5 fs-7">
+                                {{ g.priority }}
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'learning:learning_path' %}" class="btn btn-outline-primary" title="View Recommended Course">
+                                    <i class="bi bi-book me-1"></i> Course
+                                </a>
+                                <a href="{% url 'quizzes:ai_generate' %}?skill_id={{ g.skill.id }}" class="btn btn-primary" title="Practice AI Quiz">
+                                    <i class="bi bi-magic me-1"></i> Quiz
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

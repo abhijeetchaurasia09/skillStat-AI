@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Competency Progress & Trajectory — SkillStat AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4">
+    <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom">
+        <div>
+            <h1 class="h3 fw-bold mb-0">Competency Progress & Analytics</h1>
+            <p class="text-muted small mb-0">Closed-loop learning trajectory and skill improvement records</p>
+        </div>
+        <div>
+            <a href="{% url 'dashboard:index' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                &larr; Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary metrics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm border-0">
+                <span class="text-muted small fw-semibold text-uppercase">Current Overall Proficiency</span>
+                <h2 class="display-6 fw-bold text-primary mt-2 mb-0">{{ overall_score }}%</h2>
+                <span class="text-muted small mt-2">Target benchmark across MoSPI cadres is 80.0%</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm border-0">
+                <span class="text-muted small fw-semibold text-uppercase">Total Quizzes Completed</span>
+                <h2 class="display-6 fw-bold text-success mt-2 mb-0">{{ total_quizzes_taken }}</h2>
+                <span class="text-muted small mt-2">Knowledge checks and PDF evaluations taken</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm border-0">
+                <span class="text-muted small fw-semibold text-uppercase">Diagnostic Assessments</span>
+                <h2 class="display-6 fw-bold text-dark mt-2 mb-0">{{ assessment_attempts.count }}</h2>
+                <span class="text-muted small mt-2">Official baseline evaluations recorded</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline chart if attempts exist -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header card-header-custom d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-graph-up text-primary me-2"></i>Competency Score Improvement Trajectory</h5>
+                    <span class="badge bg-light text-muted border">Chart.js Timeline</span>
+                </div>
+                <div class="card-body p-4">
+                    {% if timeline_labels %}
+                    <div style="height: 320px;">
+                        <canvas id="progressTimelineChart"></canvas>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-clock-history fs-1 d-block mb-2"></i>
+                        <p class="mb-2">No quiz attempts recorded yet to render historical trajectory.</p>
+                        <a href="{% url 'quizzes:ai_generate' %}" class="btn btn-primary btn-sm rounded-pill px-3">Take your first quiz &rarr;</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attempt Records Table -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header card-header-custom">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-journal-check text-success me-2"></i>Historical Quiz Attempt Records</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-muted text-uppercase">
+                    <tr>
+                        <th class="ps-3">Quiz Name</th>
+                        <th>Score (%)</th>
+                        <th>Correct / Total</th>
+                        <th>Before &rarr; After Competency</th>
+                        <th>Net Improvement</th>
+                        <th>Date & Time</th>
+                        <th class="text-end pe-3">Review</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for q in quiz_attempts %}
+                    <tr>
+                        <td class="ps-3 fw-semibold">{{ q.quiz.title }}</td>
+                        <td>
+                            <span class="badge {% if q.score_percentage >= 70 %}bg-success{% elif q.score_percentage >= 50 %}bg-warning text-dark{% else %}bg-danger{% endif %} rounded-pill">
+                                {{ q.score_percentage|floatformat:1 }}%
+                            </span>
+                        </td>
+                        <td>{{ q.correct_answers }} of {{ q.total_questions }}</td>
+                        <td>{{ q.before_competency|floatformat:1 }}% &rarr; {{ q.after_competency|floatformat:1 }}%</td>
+                        <td>
+                            {% if q.competency_gain > 0 %}
+                            <span class="text-success fw-bold">+{{ q.competency_gain|floatformat:1 }}%</span>
+                            {% else %}
+                            <span class="text-muted">+0.0%</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ q.completed_at|date:"M d, Y H:i" }}</td>
+                        <td class="text-end pe-3">
+                            <a href="{% url 'quizzes:quiz_result' q.id %}" class="btn btn-sm btn-outline-primary rounded-pill">View Answers</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">No quiz records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if timeline_labels %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('progressTimelineChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ timeline_labels|safe }},
+            datasets: [
+                {
+                    label: 'Quiz Score (%)',
+                    data: {{ timeline_scores|safe }},
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 5,
+                },
+                {
+                    label: 'Competency Level After Quiz (%)',
+                    data: {{ timeline_competency|safe }},
+                    borderColor: 'rgb(16, 185, 129)',
+                    backgroundColor: 'transparent',
+                    borderDash: [5, 5],
+                    tension: 0.3,
+                    pointRadius: 5,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(val) { return val + '%'; }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

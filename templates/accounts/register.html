@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Register Profile — SkillStat AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div class="d-inline-flex p-3 rounded-circle bg-success bg-opacity-10 text-success mb-3">
+                            <i class="bi bi-person-plus-fill fs-2"></i>
+                        </div>
+                        <h2 class="h3 fw-bold mb-1">Create Officer Account</h2>
+                        <p class="text-muted small">Initialize your competency tracking & personalized learning path</p>
+                    </div>
+
+                    <form method="post" action="{% url 'accounts:register' %}">
+                        {% csrf_token %}
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label small fw-semibold">First Name</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label small fw-semibold">Last Name</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors.0 }}</div>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Username *</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Official Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Department / Ministry</label>
+                            {{ form.department }}
+                            {% if form.department.errors %}<div class="text-danger small">{{ form.department.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Designation / Role</label>
+                            {{ form.job_role }}
+                            {% if form.job_role.errors %}<div class="text-danger small">{{ form.job_role.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="row g-2 mb-4">
+                            <div class="col-sm-6">
+                                <label class="form-label small fw-semibold">Password *</label>
+                                {{ form.password }}
+                                {% if form.password.errors %}<div class="text-danger small">{{ form.password.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label small fw-semibold">Confirm Password *</label>
+                                {{ form.confirm_password }}
+                                {% if form.confirm_password.errors %}<div class="text-danger small">{{ form.confirm_password.errors.0 }}</div>{% endif %}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2.5 fw-semibold">
+                            <i class="bi bi-check2-circle me-1"></i> Register & Initialize Competency
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <p class="text-muted small mb-0">Already registered? <a href="{% url 'accounts:login' %}" class="fw-semibold text-primary">Sign in here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

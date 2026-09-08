@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Diagnostic Assessment — SkillStat AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            
+            <!-- Assessment Header Card -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-3 border-bottom mb-3">
+                        <div>
+                            <span class="badge bg-primary bg-opacity-10 text-primary fw-semibold px-2.5 py-1 mb-2">MoSPI Standard Diagnostic</span>
+                            <h2 class="h3 fw-bold mb-1">{{ assessment.title }}</h2>
+                            <p class="text-muted small mb-0">{{ assessment.description }}</p>
+                        </div>
+                        <div class="text-md-end">
+                            <span class="badge bg-light text-dark border p-2 d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-clock-history text-primary"></i> Time Limit: {{ assessment.time_limit_minutes }} mins
+                            </span>
+                            <div class="small text-muted mt-1">{{ total_questions }} Questions Covering 7 Core Skills</div>
+                        </div>
+                    </div>
+
+                    {% if last_attempt %}
+                    <div class="alert alert-info py-2 px-3 small rounded-3 d-flex align-items-center justify-content-between mb-0">
+                        <div>
+                            <i class="bi bi-info-circle-fill me-1"></i>
+                            Previous Attempt: <strong>{{ last_attempt.score_percentage }}%</strong> on {{ last_attempt.completed_at|date:"M d, Y" }}.
+                        </div>
+                        <span class="text-muted">Submitting now will update your competency profile</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Questions Form -->
+            <form method="post" action="{% url 'competency:assessment_submit' %}">
+                {% csrf_token %}
+                <input type="hidden" name="assessment_id" value="{{ assessment.id }}">
+
+                {% for q in questions %}
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-dark rounded-pill">Question {{ forloop.counter }} of {{ total_questions }}</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">
+                                <i class="bi {{ q.skill.icon }} me-1"></i>{{ q.skill.name }}
+                            </span>
+                        </div>
+                        <span class="badge bg-light text-muted border small">{{ q.difficulty }}</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <h5 class="fw-semibold mb-4 text-dark" style="line-height: 1.5;">{{ q.question_text }}</h5>
+
+                        <div class="options-container">
+                            <!-- Option A -->
+                            <div>
+                                <input type="radio" class="btn-check option-input" name="question_{{ q.id }}" id="q_{{ q.id }}_a" value="A" required>
+                                <label class="option-label" for="q_{{ q.id }}_a">
+                                    <span class="option-letter">A</span>
+                                    <span>{{ q.option_a }}</span>
+                                </label>
+                            </div>
+
+                            <!-- Option B -->
+                            <div>
+                                <input type="radio" class="btn-check option-input" name="question_{{ q.id }}" id="q_{{ q.id }}_b" value="B">
+                                <label class="option-label" for="q_{{ q.id }}_b">
+                                    <span class="option-letter">B</span>
+                                    <span>{{ q.option_b }}</span>
+                                </label>
+                            </div>
+
+                            <!-- Option C -->
+                            <div>
+                                <input type="radio" class="btn-check option-input" name="question_{{ q.id }}" id="q_{{ q.id }}_c" value="C">
+                                <label class="option-label" for="q_{{ q.id }}_c">
+                                    <span class="option-letter">C</span>
+                                    <span>{{ q.option_c }}</span>
+                                </label>
+                            </div>
+
+                            <!-- Option D -->
+                            <div>
+                                <input type="radio" class="btn-check option-input" name="question_{{ q.id }}" id="q_{{ q.id }}_d" value="D">
+                                <label class="option-label" for="q_{{ q.id }}_d">
+                                    <span class="option-letter">D</span>
+                                    <span>{{ q.option_d }}</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Submission Bar -->
+                <div class="card shadow-sm border-0 bg-light p-4 text-center">
+                    <h5 class="fw-bold mb-2">Ready to complete your assessment?</h5>
+                    <p class="text-muted small mb-3">Your score will be calculated and used to detect skill gaps and produce personalized recommendations.</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'dashboard:index' %}" class="btn btn-outline-secondary px-4 rounded-pill">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-5 py-2.5 rounded-pill fw-semibold shadow-sm">
+                            <i class="bi bi-check2-circle me-1"></i> Submit Diagnostic Assessment
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
